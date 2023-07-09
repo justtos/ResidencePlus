@@ -1,3 +1,7 @@
+# ResidencePlus
+
+This is a fork of Folium-MC/Residence-Maven and it is mainly used for its translation from Ant to Maven, however this fork includes custom features for a public server.
+
 # Residence
 
 Residence is different from most protection plugins in that it aims for the users to be able to protect their own homes without having to bother the admin to do it. 
