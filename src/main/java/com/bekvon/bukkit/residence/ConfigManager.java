@@ -239,6 +239,7 @@ public class ConfigManager {
     private int SignsMaxPerResidence;
 
     protected Location KickLocation;
+    protected boolean UseKickLocationInsteadOfTeleportingToVoid;
     protected Location FlyLandLocation;
 
     protected List<RandomTeleport> RTeleport = new ArrayList<RandomTeleport>();
@@ -763,6 +764,9 @@ public class ConfigManager {
         c.addComment("Global.Optimizations.KickLocation.Use",
             "By setting this to true, when player kicks another player from residence, he will be teleported to this location instead of getting outside residence");
         Boolean UseKick = c.get("Global.Optimizations.KickLocation.Use", false);
+        c.addComment("Global.Optimizations.KickLocation.UseLocationInsteadOfTeleportingToVoid",
+                "By setting this to true, when player denies movement another player from residence, he will be teleported to this location instead of getting teleported into the void");
+        UseKickLocationInsteadOfTeleportingToVoid = c.get("Global.Optimizations.KickLocation.UseLocationInsteadOfTeleportingToVoid", false);
         String KickLocationWorld = c.get("Global.Optimizations.KickLocation.World", defaultWorldName);
         Double KickLocationX = c.get("Global.Optimizations.KickLocation.X", 0.5);
         Double KickLocationY = c.get("Global.Optimizations.KickLocation.Y", 63.0);
@@ -2178,6 +2182,8 @@ public class ConfigManager {
     public Location getKickLocation() {
         return KickLocation;
     }
+
+    public boolean getUseKickLocationInsteadOfTeleportingToVoid() { return UseKickLocationInsteadOfTeleportingToVoid; }
 
     public Location getFlyLandLocation() {
         return FlyLandLocation;

@@ -15,6 +15,8 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -1169,6 +1171,16 @@ public class ClaimedResidence {
 
             break;
         }
+
+        // ToS
+        if(found && CMIMaterial.isAir(loc.getBlock().getType()))
+        {
+            if (Residence.getInstance().getConfigManager().getKickLocation() != null && Residence.getInstance().getConfigManager().getUseKickLocationInsteadOfTeleportingToVoid())
+                return Residence.getInstance().getConfigManager().getKickLocation();
+            // Fail safe for kick out location
+            return player.getWorld().getSpawnLocation();
+        }
+        /// ToS
 
         if (!found) {
             if (Residence.getInstance().getConfigManager().getKickLocation() != null)
