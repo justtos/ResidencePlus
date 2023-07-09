@@ -1,4 +1,4 @@
-package com.bekvon.bukkit.residence;
+	package com.bekvon.bukkit.residence;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -145,6 +145,10 @@ public class LocaleManager {
 	c.get("CommandHelp.Description", "Contains Help for Residence");
 	c.get("CommandHelp.SubCommands.res.Description", "Main Residence Command");
 	c.get("CommandHelp.SubCommands.res.Info", Arrays.asList("&2Use &6/res [command] ? <page> &2to view more help Information."));
+
+	// ToS
+		c.get("General.DisabledResidenceCreationWorld", "&cResidence creation is disabled in the selected world");
+	/// ToS
 
 	for (Entry<String, CommandStatus> cmo : plugin.getCommandFiller().getCommandMap().entrySet()) {
 	    c.setFullPath(plugin.getLocaleManager().path + cmo.getKey() + ".");

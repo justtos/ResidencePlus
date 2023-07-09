@@ -35,6 +35,15 @@ public class auto implements cmd {
 
         Player player = (Player) sender;
 
+        // ToS
+        if (sender instanceof Player &&
+                !plugin.getPermissionManager().isResidenceAdmin(sender) &&
+                plugin.isDisabledResidenceCreationWorld(player.getWorld().getName()) ) {
+            plugin.msg(sender, lm.General_DisabledResidenceCreationWorld);
+            return null;
+        }
+        /// ToS
+
         String resName = null;
 
         int lenght = -1;

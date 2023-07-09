@@ -1945,6 +1945,16 @@ public class Residence extends JavaPlugin {
         return getConfigManager().DisabledWorldsList.contains(worldname);
     }
 
+    // ToS
+    public boolean isDisabledResidenceCreationWorld(World world) {
+        return isDisabledResidenceCreationWorld(world.getName());
+    }
+
+    public boolean isDisabledResidenceCreationWorld(String worldname) {
+        return getConfigManager().DisabledResidenceCreationWorldsList.contains(worldname);
+    }
+    /// ToS
+
     public boolean isDisabledWorldListener(World world) {
         return isDisabledWorldListener(world.getName());
     }

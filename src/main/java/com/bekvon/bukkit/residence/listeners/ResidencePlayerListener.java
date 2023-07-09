@@ -1196,6 +1196,10 @@ public class ResidencePlayerListener implements Listener {
         // disabling event on world
         if (plugin.isDisabledWorldListener(event.getPlayer().getWorld()))
             return;
+
+        if (plugin.isDisabledResidenceCreationWorld(event.getPlayer().getWorld()))
+            return;
+
         if (event.getAction() != Action.LEFT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
 

@@ -244,6 +244,7 @@ public class ConfigManager {
     protected List<RandomTeleport> RTeleport = new ArrayList<RandomTeleport>();
 
     protected List<String> DisabledWorldsList = new ArrayList<String>();
+    protected List<String> DisabledResidenceCreationWorldsList = new ArrayList<String>(); // ToS
 
     protected int rtCooldown;
     protected int rtMaxTries;
@@ -671,6 +672,11 @@ public class ConfigManager {
 
         c.addComment("Global.Optimizations.DisabledWorlds.List", "List Of Worlds where this plugin is disabled", "Make sure that world names capitalization is correct");
         DisabledWorldsList = c.get("Global.Optimizations.DisabledWorlds.List", new ArrayList<String>());
+
+        // ToS
+        c.addComment("Global.Optimizations.DisabledResidenceCreationWorlds.List", "List Of Worlds where creating residences is disabled", "Make sure that world names capitalization is correct");
+        DisabledResidenceCreationWorldsList = c.get("Global.Optimizations.DisabledResidenceCreationWorlds.List", new ArrayList<String>());
+        /// ToS
 
         c.addComment("Global.Optimizations.DisabledWorlds.DisableListeners", "Disables all listeners in included worlds");
         DisableListeners = c.get("Global.Optimizations.DisabledWorlds.DisableListeners", true);

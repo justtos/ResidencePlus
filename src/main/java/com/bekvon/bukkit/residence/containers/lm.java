@@ -473,6 +473,7 @@ public enum lm {
     Permissions_cmdPermissionColor("&2"),
 
     General_DisabledWorld("&cResidence plugin is disabled in this world"),
+    General_DisabledResidenceCreationWorld("&cResidence creation is disabled in selected world"),
     General_UseNumbers("&cPlease use numbers..."),
     General_CantPlaceLava("&cYou can't place lava outside residence and higher than &6%1 &cblock level", "Replace all text with '' to disable this message"),
     General_CantPlaceWater("&cYou can't place Water outside residence and higher than &6%1 &cblock level", "Replace all text with '' to disable this message"),
@@ -561,6 +562,7 @@ public enum lm {
         "&eIf you want to create protected area for your house, please use wooden axe to select opposite sides of your home and execute command &2/res create YourResidenceName",
         "The below lines represent various messages residence sends to the players.",
         "Note that some messages have variables such as %1 that are inserted at runtime.");
+
 
     private Object text;
     private String[] comments;

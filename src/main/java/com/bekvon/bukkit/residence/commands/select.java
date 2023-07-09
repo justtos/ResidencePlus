@@ -33,6 +33,15 @@ public class select implements cmd {
 
 	Player player = (Player) sender;
 
+	// ToS
+	if (sender instanceof Player &&
+			!plugin.getPermissionManager().isResidenceAdmin(sender) &&
+			plugin.isDisabledResidenceCreationWorld(player.getWorld().getName()) ) {
+		plugin.msg(sender, lm.General_DisabledResidenceCreationWorld);
+		return null;
+	}
+	/// ToS
+
 	ResidencePlayer rPlayer = plugin.getPlayerManager().getResidencePlayer(player);
 
 	PermissionGroup group = rPlayer.getGroup();
