@@ -1,6 +1,10 @@
 package com.bekvon.bukkit.residence.listeners;
 
+import com.sun.source.tree.TypeCastTree;
+import net.Zrips.CMILib.Colors.CMIChatColor;
 import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -8,15 +12,29 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.bekvon.bukkit.residence.Residence;
+import static com.bekvon.bukkit.residence.listeners.ResidenceBlockListener.canPlaceBlock;
 import com.bekvon.bukkit.residence.containers.Flags;
 import com.bekvon.bukkit.residence.containers.lm;
-import com.bekvon.bukkit.residence.protection.FlagPermissions;
 
 import net.Zrips.CMILib.Items.CMIMaterial;
+
+import java.util.regex.Pattern;
 
 public class ResidencePlayerListener1_20 implements Listener {
 
     private Residence plugin;
+
+    public static final Pattern[][] CHESTSHOP_SIGN_PATTERN = {
+            { Pattern.compile("^[1-9][0-9]{0,5}$"), Pattern.compile("^Q [1-9][0-9]{0,4} : C [0-9]{1,5}$") },
+            {
+                    Pattern.compile("(?i)^((\\d{1,}([.e]\\d+)?)|free)$"),
+                    Pattern.compile("(?i)^([BS] *((\\d*([.e]\\d+)?)|free))( *: *([BS] *((\\d*([.e]\\d+)?)|free)))?$"),
+                    Pattern.compile("(?i)^(((\\d*([.e]\\d+)?)|free) *[BS])( *: *([BS] *((\\d*([.e]\\d+)?)|free)))?$"),
+                    Pattern.compile("(?i)^(((\\d*([.e]\\d+)?)|free) *[BS]) *: *(((\\d*([.e]\\d+)?)|free) *[BS])$"),
+                    Pattern.compile("(?i)^([BS] *((\\d*([.e]\\d+)?)|free)) *: *(((\\d*([.e]\\d+)?)|free) *[BS])$"),
+            },
+            { Pattern.compile("^[\\p{L}\\d_? #:\\-]+$") }
+    };
 
     public ResidencePlayerListener1_20(Residence plugin) {
         this.plugin = plugin;
@@ -39,11 +57,28 @@ public class ResidencePlayerListener1_20 implements Listener {
         if (player.hasMetadata("NPC"))
             return;
 
-        FlagPermissions perms = plugin.getPermsByLocForPlayer(block.getLocation(), player);
+        // Check if a sign matches the ChestShop format
+        String[] lines = ((Sign) block.getState()).getSide(Side.FRONT).getLines();
+        boolean isChestShopSign = false;
+        for (int i = 0; i < 3; i++) {
+            boolean matches = false;
+            for (Pattern pattern : CHESTSHOP_SIGN_PATTERN[i]) {
+                if (pattern.matcher( CMIChatColor.stripColor(lines[i+1])).matches() ) {
+                    matches = true;
+                    break;
+                }
+            }
 
-        boolean hasplace = perms.playerHas(player, Flags.place, perms.playerHas(player, Flags.build, true));
-        if (hasplace)
-            return;
+            if(matches)
+                isChestShopSign = true;
+            else {
+                isChestShopSign = false;
+                break;
+            }
+        }
+
+        if (canPlaceBlock(player, block, false) || isChestShopSign) // if isChestShopSign ChestShop handles the protection
+            return; // Allow
 
         event.setCancelled(true);
         plugin.msg(player, lm.Flag_Deny, Flags.build);
