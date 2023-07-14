@@ -8,9 +8,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.bekvon.bukkit.residence.Residence;
+import static com.bekvon.bukkit.residence.listeners.ResidenceBlockListener.canPlaceBlock;
 import com.bekvon.bukkit.residence.containers.Flags;
 import com.bekvon.bukkit.residence.containers.lm;
-import com.bekvon.bukkit.residence.protection.FlagPermissions;
 
 import net.Zrips.CMILib.Items.CMIMaterial;
 
@@ -39,11 +39,8 @@ public class ResidencePlayerListener1_20 implements Listener {
         if (player.hasMetadata("NPC"))
             return;
 
-        FlagPermissions perms = plugin.getPermsByLocForPlayer(block.getLocation(), player);
-
-        boolean hasplace = perms.playerHas(player, Flags.place, perms.playerHas(player, Flags.build, true));
-        if (hasplace)
-            return;
+        if (canPlaceBlock(player, block, false))
+            return; // Allow
 
         event.setCancelled(true);
         plugin.msg(player, lm.Flag_Deny, Flags.build);
