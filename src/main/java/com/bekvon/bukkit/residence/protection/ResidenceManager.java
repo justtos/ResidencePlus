@@ -114,10 +114,11 @@ public class ResidenceManager implements ResidenceInterface {
         for (ClaimedResidence residence : residences) {
             if (residence == null)
                 continue;
-            if (residence.containsLoc(loc)) {
-                ClaimedResidence subres = residence.getSubzoneByLoc(loc);
-                return subres == null ? residence : subres;
-            }
+            if (!residence.containsLoc(loc))
+                continue;
+
+            ClaimedResidence subres = residence.getSubzoneByLoc(loc);
+            return subres == null ? residence : subres;
         }
         return null;
     }
@@ -972,7 +973,7 @@ public class ResidenceManager implements ResidenceInterface {
         if (ls == null)
             return null;
         for (MinimizeMessages one : ls) {
-            Map<String, Object> root = new HashMap<>();
+            Map<String, String> root = new HashMap<>();
             root.put("EnterMessage", one.getEnter());
             root.put("LeaveMessage", one.getLeave());
             t.put(one.getId(), root);

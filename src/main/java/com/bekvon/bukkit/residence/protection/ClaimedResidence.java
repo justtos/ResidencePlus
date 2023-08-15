@@ -79,9 +79,8 @@ public class ClaimedResidence {
     protected double BlockSellPrice = 0.0;
     protected Vector tpLoc;
     protected Vector PitchYaw;
-    protected World world;
-    protected String enterMessage;
-    protected String leaveMessage;
+    protected String enterMessage = null;
+    protected String leaveMessage = null;
     protected String ShopDesc = null;
     protected String ChatPrefix = "";
     protected CMIChatColor ChannelColor = CMIChatColor.WHITE;
@@ -356,6 +355,14 @@ public class ClaimedResidence {
         if (!Residence.getInstance().validName(name)) {
             if (player != null) {
                 Residence.getInstance().msg(player, lm.Invalid_NameCharacters);
+            }
+            return false;
+        }
+
+        if (Math.abs(area.getLowVector().getBlockX()) > 30000000 || Math.abs(area.getHighVector().getBlockX()) > 30000000 ||
+                Math.abs(area.getLowVector().getBlockZ()) > 30000000 || Math.abs(area.getHighVector().getBlockZ()) > 30000000) {
+            if (player != null) {
+                Residence.getInstance().msg(player, lm.Invalid_Area);
             }
             return false;
         }
@@ -1095,7 +1102,8 @@ public class ClaimedResidence {
     public Location getOutsideFreeLoc(Location insideLoc, Player player) {
         CuboidArea area = this.getAreaByLoc(insideLoc);
         if (area == null) {
-            return player.getWorld().getSpawnLocation();
+            World bw = this.getPermissions().getBukkitWorld();
+            return bw != null ? bw.getSpawnLocation() != null ? bw.getSpawnLocation() : player.getWorld().getSpawnLocation() : player.getWorld().getSpawnLocation();
         }
 
         List<RandomLoc> randomLocList = new ArrayList<RandomLoc>();
@@ -1178,7 +1186,8 @@ public class ClaimedResidence {
             if (Residence.getInstance().getConfigManager().getKickLocation() != null && Residence.getInstance().getConfigManager().getUseKickLocationInsteadOfTeleportingToVoid())
                 return Residence.getInstance().getConfigManager().getKickLocation();
             // Fail safe for kick out location
-            return player.getWorld().getSpawnLocation();
+            World bw = this.getPermissions().getBukkitWorld();
+            return bw != null ? bw.getSpawnLocation() != null ? bw.getSpawnLocation() : player.getWorld().getSpawnLocation() : player.getWorld().getSpawnLocation();
         }
         /// ToS
 
@@ -1186,7 +1195,8 @@ public class ClaimedResidence {
             if (Residence.getInstance().getConfigManager().getKickLocation() != null)
                 return Residence.getInstance().getConfigManager().getKickLocation();
             // Fail safe for kick out location
-            return player.getWorld().getSpawnLocation();
+            World bw = this.getPermissions().getBukkitWorld();
+            return bw != null ? bw.getSpawnLocation() != null ? bw.getSpawnLocation() : player.getWorld().getSpawnLocation() : player.getWorld().getSpawnLocation();
         }
         if (player != null) {
             loc.setPitch(player.getLocation().getPitch());
@@ -1319,7 +1329,7 @@ public class ClaimedResidence {
 //    }
 
     public Location getTeleportLocation(Player player) {
-        if (tpLoc == null) {
+        if (tpLoc == null || this.getMainArea() != null && !this.containsLoc(new Location(this.getMainArea().getWorld(), tpLoc.getX(), tpLoc.getY(), tpLoc.getZ()))) {
             if (this.getMainArea() == null)
                 return null;
             Location low = this.getMainArea().getLowLocation();
@@ -1351,7 +1361,7 @@ public class ClaimedResidence {
             return;
         }
 
-        world = player.getWorld();
+        // world = player.getWorld();
         tpLoc = player.getLocation().toVector();
         PitchYaw = new Vector(player.getLocation().getPitch(), player.getLocation().getYaw(), 0);
         Residence.getInstance().msg(player, lm.Residence_SetTeleportLocation);
@@ -1457,6 +1467,11 @@ public class ClaimedResidence {
         }
 
         Location loc = this.getTeleportLocation(targetPlayer);
+
+        if (Math.abs(loc.getBlockX()) > 30000000 || Math.abs(loc.getBlockZ()) > 30000000) {
+            Residence.getInstance().msg(reqPlayer, lm.Invalid_Area);
+            return;
+        }
 
         if (Residence.getInstance().getConfigManager().getTeleportDelay() > 0 && !isAdmin && !bypassDelay)
             performDelaydTp(loc, targetPlayer, reqPlayer, true);
@@ -1603,7 +1618,7 @@ public class ClaimedResidence {
 
         try {
             if (Residence.getInstance().getConfigManager().isNewSaveMechanic()) {
-                if (enterMessage != null && leaveMessage != null) {
+                if (enterMessage != null || leaveMessage != null) {
                     MinimizeMessages min = Residence.getInstance().getResidenceManager().addMessageToTempCache(this.getWorld(), enterMessage,
                         leaveMessage);
                     if (min == null) {
@@ -1612,7 +1627,7 @@ public class ClaimedResidence {
                         if (leaveMessage != null)
                             root.put("LeaveMessage", leaveMessage);
                     } else {
-                        if (min.getId() > 1)
+                        if (min.getId() > 0)
                             root.put("Messages", min.getId());
                     }
                 }
@@ -1876,10 +1891,11 @@ public class ClaimedResidence {
 
             // Defaulting to first one if not present
             if (defaultGroup != null) {
-                if (res.enterMessage == null)
-                    res.enterMessage = defaultGroup.getDefaultEnterMessage();
+                if (res.enterMessage == null) {
+                    res.enterMessage = defaultGroup.getDefaultEnterMessage().replace("\n", "\\n");
+                }
                 if (res.leaveMessage == null)
-                    res.leaveMessage = defaultGroup.getDefaultLeaveMessage();
+                    res.leaveMessage = defaultGroup.getDefaultLeaveMessage().replace("\n", "\\n");
             }
         }
 
@@ -2069,7 +2085,7 @@ public class ClaimedResidence {
 
     public boolean isOwner(String name) {
         Player player = Bukkit.getPlayer(name);
-        if (player != null)
+        if (player != null && player.getName().equalsIgnoreCase(name))
             return isOwner(player);
         return perms.getOwner().equalsIgnoreCase(name);
     }

@@ -56,6 +56,7 @@ import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import com.bekvon.bukkit.residence.ConfigManager;
@@ -388,7 +389,7 @@ public class ResidencePlayerListener implements Listener {
         Player player = event.getPlayer();
         if (event.getCaught() == null)
             return;
-        if (Utils.isArmorStandEntity(event.getCaught().getType()) || event.getCaught() instanceof Boat || event.getCaught() instanceof LivingEntity) {
+        if ((Utils.isArmorStandEntity(event.getCaught().getType()) || event.getCaught() instanceof Boat || event.getCaught() instanceof LivingEntity) && !plugin.isResAdminOn(player)) {
             FlagPermissions perm = plugin.getPermsByLoc(event.getCaught().getLocation());
             ClaimedResidence res = plugin.getResidenceManager().getByLoc(event.getCaught().getLocation());
             if (perm.has(Flags.hook, FlagCombo.OnlyFalse)) {
@@ -967,7 +968,6 @@ public class ResidencePlayerListener implements Listener {
 
         switch (mat.name()) {
         case "ITEM_FRAME":
-        case "CAKE":
         case "BEACON":
         case "FLOWER_POT":
         case "COMMAND":
@@ -1000,8 +1000,22 @@ public class ResidencePlayerListener implements Listener {
         }
 
         CMIMaterial cmat = CMIMaterial.get(mat);
-        if (cmat != null && cmat.isPotted()) {
-            return true;
+        if (cmat != null) {
+
+            if (cmat.isPotted())
+                return true;
+
+            if (cmat.isCake())
+                return true;
+
+            if (cmat.isCandle())
+                return true;
+
+            if (cmat.isCandleCake())
+                return true;
+
+            if (cmat.equals(CMIMaterial.CAMPFIRE) || cmat.equals(CMIMaterial.SOUL_CAMPFIRE))
+                return true;
         }
 
         return plugin.getConfigManager().getCustomRightClick().contains(CMIMaterial.get(block));
@@ -1379,18 +1393,17 @@ public class ResidencePlayerListener implements Listener {
         FlagPermissions perms = plugin.getPermsByLocForPlayer(block.getLocation(), player);
 
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+
+            CMIMaterial btype = CMIMaterial.get(block);
+
             if (heldItem.isDye() || heldItem.equals(CMIMaterial.GLOW_INK_SAC)) {
-                CMIMaterial btype = CMIMaterial.get(block);
-                if (heldItem.equals(CMIMaterial.BONE_MEAL) && (
-                    btype == CMIMaterial.GRASS_BLOCK || 
-                    btype == CMIMaterial.GRASS || 
-                    btype.isSapling()) ||
-                    heldItem == CMIMaterial.COCOA_BEANS && blockM == CMIMaterial.JUNGLE_WOOD || 
-                    btype == CMIMaterial.MOSS_BLOCK || 
-                    btype == CMIMaterial.BIG_DRIPLEAF_STEM || 
-                    btype == CMIMaterial.BIG_DRIPLEAF || 
-                    btype == CMIMaterial.SMALL_DRIPLEAF || 
-                    btype.isSign()) {
+                if (heldItem.equals(CMIMaterial.BONE_MEAL) && (btype == CMIMaterial.GRASS_BLOCK ||
+                        btype == CMIMaterial.GRASS ||
+                        heldItem == CMIMaterial.COCOA_BEANS && blockM == CMIMaterial.JUNGLE_WOOD ||
+                        btype == CMIMaterial.MOSS_BLOCK ||
+                        btype == CMIMaterial.BIG_DRIPLEAF_STEM ||
+                        btype == CMIMaterial.BIG_DRIPLEAF ||
+                        btype == CMIMaterial.SMALL_DRIPLEAF)) {
                     FlagPermissions tperms = plugin.getPermsByLocForPlayer(block.getRelative(event.getBlockFace()).getLocation(), player);
                     if (!tperms.playerHas(player, Flags.build, true)) {
                         plugin.msg(player, lm.Flag_Deny, Flags.build);
@@ -1409,6 +1422,13 @@ public class ResidencePlayerListener implements Listener {
             }
             if (placingMinecart(block, iih) && !perms.playerHas(player, Flags.build, true)) {
                 plugin.msg(player, lm.Flag_Deny, Flags.build);
+                event.setCancelled(true);
+                return;
+
+            }
+
+            if (btype.isSign() && !perms.playerHas(player, Flags.use, true)) {
+                plugin.msg(player, lm.Flag_Deny, Flags.use);
                 event.setCancelled(true);
                 return;
 
@@ -1930,7 +1950,7 @@ public class ResidencePlayerListener implements Listener {
 //		plugin.msg(player, lm.Residence_MoveDeny, res.getName());
 //		return;
 //	    }
-//	} else 
+//	} else
         if (event.getCause() == TeleportCause.COMMAND || event.getCause() == TeleportCause.NETHER_PORTAL || event
             .getCause() == TeleportCause.PLUGIN) {
             if (res.getPermissions().playerHas(player, Flags.move, FlagCombo.OnlyFalse) && !res.isOwner(player)
@@ -2377,6 +2397,8 @@ public class ResidencePlayerListener implements Listener {
             }
             return true;
         }
+        boolean cantMove = res != null && Flags.move.isGlobalyEnabled() && res.getPermissions().playerHas(player, Flags.move, FlagCombo.OnlyFalse) && !plugin.isResAdminOn(player) && !res.isOwner(player)
+                && !ResPerm.admin_move.hasPermission(player, 10000L);
 
         if (move) {
             if (res.getRaid().isUnderRaid()) {
@@ -2434,8 +2456,7 @@ public class ResidencePlayerListener implements Listener {
                 return teleported;
             }
 
-            if (Flags.move.isGlobalyEnabled() && res.getPermissions().playerHas(player, Flags.move, FlagCombo.OnlyFalse) && !plugin.isResAdminOn(player) && !res.isOwner(player) && !ResPerm.admin_move
-                .hasPermission(player, 10000L)) {
+            if (cantMove) {
 
                 Location lastLoc = lastOutsideLoc.get(uuid);
 
@@ -2531,8 +2552,6 @@ public class ResidencePlayerListener implements Listener {
             }
         }
 
-        boolean cantMove = res != null && Flags.move.isGlobalyEnabled() && res.getPermissions().playerHas(player, Flags.move, FlagCombo.OnlyFalse) && !plugin.isResAdminOn(player) && !res.isOwner(player)
-            && !ResPerm.admin_move.hasPermission(player, 10000L);
 
         if (!cantMove) {
             lastOutsideLoc.put(uuid, loc);
@@ -2609,7 +2628,7 @@ public class ResidencePlayerListener implements Listener {
         Player player = event.getPlayer();
         if (player.hasMetadata("NPC"))
             return;
-        if (message != null) {
+        if (message != null && !message.isEmpty()) {
             Long time = informar.get(player.getUniqueId());
             if (time == null || time + 100L < System.currentTimeMillis()) {
 
@@ -2788,9 +2807,15 @@ public class ResidencePlayerListener implements Listener {
                 if (world == null)
                     continue;
 
-                for (CuboidArea area : res.getAreaMap().values()) {
-                    for (ChunkRef chunk : area.getChunks()) {
-                        entities.addAll(Arrays.asList(world.getChunkAt(chunk.getX(), chunk.getZ()).getEntities()));
+                if (Version.isCurrentEqualOrHigher(Version.v1_13_R1)) {
+                    for (CuboidArea area : res.getAreaMap().values()) {
+                        entities.addAll(world.getNearbyEntities(BoundingBox.of(area.getLowVector(), area.getHighVector())));
+                    }
+                } else {
+                    for (CuboidArea area : res.getAreaMap().values()) {
+                        for (ChunkRef chunk : area.getChunks()) {
+                            entities.addAll(Arrays.asList(world.getChunkAt(chunk.getX(), chunk.getZ()).getEntities()));
+                        }
                     }
                 }
                 for (Entity ent : entities) {

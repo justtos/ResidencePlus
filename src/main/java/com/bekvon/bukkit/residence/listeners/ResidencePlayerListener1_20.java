@@ -12,7 +12,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.bekvon.bukkit.residence.Residence;
-import static com.bekvon.bukkit.residence.listeners.ResidenceBlockListener.canPlaceBlock;
+import com.bekvon.bukkit.residence.protection.FlagPermissions;
+import com.bekvon.bukkit.residence.protection.FlagPermissions.FlagCombo;
+
 import com.bekvon.bukkit.residence.containers.Flags;
 import com.bekvon.bukkit.residence.containers.lm;
 
@@ -76,12 +78,14 @@ public class ResidencePlayerListener1_20 implements Listener {
                 break;
             }
         }
+        FlagPermissions perms = plugin.getPermsByLocForPlayer(block.getLocation(), player);
 
-        if (canPlaceBlock(player, block, false) || isChestShopSign) // if isChestShopSign ChestShop handles the protection
+        boolean hasuse = perms.playerHas(player, Flags.use, FlagCombo.TrueOrNone);
+        if (hasuse || isChestShopSign || plugin.isResAdminOn(player)) // if isChestShopSign ChestShop handles the protection
             return; // Allow
 
         event.setCancelled(true);
-        plugin.msg(player, lm.Flag_Deny, Flags.build);
+        plugin.msg(player, lm.Flag_Deny, Flags.use);
 
     }
 }
